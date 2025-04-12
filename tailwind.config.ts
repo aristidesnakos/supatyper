@@ -26,6 +26,17 @@ const config: Config = {
         beige: '#DED6CA',      // Light beige for borders
         gray: '#A29D8E',       // Soft gray
         error: '#EF4444',      // Red for errors
+        // SupaTyper custom colors
+        "supatyper-background": "#F5F5DC",      // Light beige background
+        "supatyper-backgroundAlt": "#F8F8E8",   // Slightly lighter beige
+        "supatyper-backgroundLight": "#FCFCF5", // Very light beige
+        "supatyper-darkBrown": "#3E3628",       // Dark brown text
+        "supatyper-oliveBrown": "#6B5B45",      // Olive brown text
+        "supatyper-mutedBrown": "#A29D8E",      // Muted brown
+        "supatyper-lightBeige": "#DED6CA",      // Light beige
+        "supatyper-brightBlue": "#7B9EFF",      // Bright blue for buttons
+        "supatyper-vibrantOrange": "#F9621C",   // Vibrant orange
+        "supatyper-lightGray": "#F0F0F0",       // Light gray
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

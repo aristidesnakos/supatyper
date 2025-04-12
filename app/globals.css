@@ -96,4 +96,44 @@ body {
   .card {
     @apply bg-white rounded-lg shadow-card p-8;
   }
+  
+  /* Typing game specific styles */
+  .word {
+    @apply inline-block;
+  }
+  
+  .word-current {
+    @apply relative;
+  }
+  
+  .word-correct {
+    @apply text-accent;
+  }
+  
+  .word-incorrect {
+    @apply text-error;
+  }
+  
+  .word-waiting {
+    @apply text-supatyper-darkBrown;
+  }
+  
+  .cursor-typing {
+    @apply absolute bottom-0 left-0 right-0 h-0.5 bg-supatyper-brightBlue animate-pulse;
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }

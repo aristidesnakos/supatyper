@@ -1,24 +1,30 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Card } from '@/components/common';
-import { useGame } from '@/context';
-import { formatTime, splitIntoWords, compareWords } from '@/lib/utils';
+import { Button, Card } from '@/components/common';
+import { formatTime, splitIntoWords, compareWords } from '@/lib/utils/text';
+import { RefreshCw, RotateCcw } from 'lucide-react';
 
-export function TypingArea() {
-  const { paragraph, completeTyping } = useGame();
+interface TypingAreaProps {
+  paragraph: string;
+  onComplete: (accuracy: number, timeInSeconds: number) => void;
+  onReset: () => void;
+}
+
+export function TypingArea({ paragraph, onComplete, onReset }: TypingAreaProps) {
   const [typedText, setTypedText] = useState<string>('');
   const [timer, setTimer] = useState<number>(0);
   const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
   const [startTime, setStartTime] = useState<number | null>(null);
+  const [isCompleted, setIsCompleted] = useState<boolean>(false);
   
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   
-  // Focus textarea on component mount
+  // Focus input on component mount
   useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.focus();
+    if (inputRef.current) {
+      inputRef.current.focus();
     }
   }, []);
   
@@ -57,16 +63,51 @@ export function TypingArea() {
     setIsTimerRunning(false);
   };
   
-  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const text = e.target.value;
-    setTypedText(text);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const lastChar = value[value.length - 1];
+
+    // Start timer on first input
+    if (!startTime && value.length > 0) {
+      setStartTime(Date.now());
+      setIsTimerRunning(true);
+    }
+
+    // If space is entered, check the current word
+    if (lastChar === " " && value.trim() !== "") {
+      checkWord(value.trim());
+      setTypedText("");
+    } else {
+      setTypedText(value);
+    }
+  };
+
+  const checkWord = (typedWord: string) => {
+    // Ignore punctuation for comparison
+    const normalizeWord = (word: string) => 
+      word.toLowerCase().replace(/[^\w\s]/g, "");
+
+    const paragraphWords = splitIntoWords(paragraph);
+    const typedWords = splitIntoWords(typedText);
     
-    // Check if typing is complete
-    if (paragraph) {
+    const currentIndex = typedWords.length;
+    
+    if (currentIndex >= paragraphWords.length) {
+      finishTyping();
+      return;
+    }
+    
+    // Continue typing
+    setTypedText(typedText + " ");
+  };
+  
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Handle final word submission on Enter
+    if (e.key === "Enter" && typedText.trim() !== "") {
       const paragraphWords = splitIntoWords(paragraph);
-      const typedWords = splitIntoWords(text);
+      const typedWords = splitIntoWords(typedText);
       
-      if (typedWords.length >= paragraphWords.length && text.trim().length > 0) {
+      if (typedWords.length >= paragraphWords.length - 1) {
         finishTyping();
       }
     }
@@ -74,10 +115,10 @@ export function TypingArea() {
   
   const finishTyping = () => {
     stopTimer();
+    setIsCompleted(true);
     
     // Calculate results
     const timeInSeconds = timer;
-    const timeInMinutes = timeInSeconds / 60;
     
     const paragraphWords = splitIntoWords(paragraph);
     const typedWords = splitIntoWords(typedText);
@@ -91,19 +132,8 @@ export function TypingArea() {
     }
     
     const accuracy = (correctWords / paragraphWords.length) * 100;
-    const wpm = Math.round(correctWords / timeInMinutes);
-    const score = Math.round(correctWords * (200 / timeInMinutes));
     
-    completeTyping({
-      typedText,
-      correctWords,
-      totalWords: paragraphWords.length,
-      accuracy,
-      timeInSeconds,
-      timeInMinutes,
-      wpm,
-      score
-    });
+    onComplete(accuracy, timeInSeconds);
   };
   
   // Render paragraph with highlighted words
@@ -114,38 +144,82 @@ export function TypingArea() {
     const typedWords = splitIntoWords(typedText);
     
     return paragraphWords.map((word, index) => {
-      let className = '';
+      let className = 'word word-waiting';
       
       if (index < typedWords.length) {
-        className = compareWords(word, typedWords[index]) ? 'text-accent' : 'text-error';
+        className = compareWords(word, typedWords[index]) ? 'word word-correct text-accent' : 'word word-incorrect text-error';
+      } else if (index === typedWords.length) {
+        className = 'word word-current';
       }
       
       return (
         <span key={index} className={className}>
-          {word}{' '}
+          {word}
+          {index < paragraphWords.length - 1 && " "}
+          {className === 'word word-current' && (
+            <span className="cursor-typing"></span>
+          )}
         </span>
       );
     });
   };
   
+  const focusInput = () => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+  
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-secondary text-xl font-semibold">Type the paragraph below</h2>
-        <div className="text-secondary text-xl font-mono">{formatTime(timer)}</div>
+    <div className="w-full max-w-2xl mx-auto space-y-4">
+      <div className="flex justify-between items-center">
+        <div className="text-supatyper-darkBrown font-mono">
+          Time: <span className="font-semibold">{formatTime(timer)}</span>
+        </div>
+        <Button
+          variant="secondary"
+          onClick={onReset}
+          className="text-supatyper-darkBrown border-supatyper-mutedBrown"
+          icon={<RotateCcw className="h-4 w-4" />}
+          iconPosition="left"
+        >
+          New Text
+        </Button>
       </div>
-      
-      <div className="bg-primary p-4 rounded-lg mb-6 min-h-[100px] text-lg leading-relaxed">
-        {renderParagraph()}
-      </div>
-      
-      <textarea
-        ref={textareaRef}
-        className="w-full p-4 border border-beige rounded-lg text-secondary focus:outline-none focus:ring-2 focus:ring-buttonBlue min-h-[100px] text-lg"
-        placeholder="Start typing here..."
-        value={typedText}
-        onChange={handleInputChange}
-      />
-    </Card>
+
+      <Card
+        className="p-6 bg-white/80 backdrop-blur-sm shadow-md border border-supatyper-lightBeige"
+        onClick={focusInput}
+      >
+        <div className="font-mono text-lg text-supatyper-darkBrown leading-relaxed mb-6 select-none">
+          {renderParagraph()}
+        </div>
+
+        {!isCompleted ? (
+          <input
+            ref={inputRef}
+            type="text"
+            value={typedText}
+            onChange={handleInputChange}
+            onKeyDown={handleInputKeyDown}
+            className="w-full p-3 bg-supatyper-backgroundLight border border-supatyper-mutedBrown rounded-md font-mono text-lg focus:outline-none focus:ring-2 focus:ring-supatyper-brightBlue"
+            placeholder="Start typing..."
+            autoFocus
+            disabled={isCompleted}
+          />
+        ) : (
+          <div className="text-center">
+            <Button
+              onClick={onReset}
+              className="bg-supatyper-brightBlue hover:bg-supatyper-brightBlue/90 text-white"
+              icon={<RefreshCw className="h-4 w-4" />}
+              iconPosition="left"
+            >
+              Try Again
+            </Button>
+          </div>
+        )}
+      </Card>
+    </div>
   );
 }

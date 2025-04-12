@@ -2,92 +2,105 @@
 
 import React, { useState } from 'react';
 import { Button, Card, Input } from '@/components/common';
-import { useGame } from '@/context';
+import { ChevronRight } from 'lucide-react';
 
-export function TopicSelector() {
-  const { selectTopic, startTyping } = useGame();
+interface TopicSelectorProps {
+  onTopicSelected: (topic: string) => void;
+  isLoading: boolean;
+}
+
+export function TopicSelector({ onTopicSelected, isLoading }: TopicSelectorProps) {
   const [selectedTopic, setSelectedTopic] = useState<string>('');
   const [customTopic, setCustomTopic] = useState<string>('');
-  const [showCustomInput, setShowCustomInput] = useState<boolean>(false);
+  const [useCustom, setUseCustom] = useState<boolean>(false);
   
   const predefinedTopics = [
-    'Technology', 'Nature', 'Space', 'History', 
-    'Science', 'Art', 'Sports', 'Food'
+    'Space',
+    'Nature',
+    'History',
+    'Technology',
+    'Science',
+    'Art',
+    'Sports',
+    'Food',
   ];
   
   const handleTopicSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const topic = e.target.value;
-    setSelectedTopic(topic);
-    selectTopic(topic);
-  };
-  
-  const handleCustomTopic = () => {
-    setShowCustomInput(!showCustomInput);
-    if (!showCustomInput) {
-      setSelectedTopic('');
-    }
+    setSelectedTopic(e.target.value);
   };
   
   const handleCustomTopicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const topic = e.target.value;
-    setCustomTopic(topic);
-    selectTopic(topic);
+    setCustomTopic(e.target.value);
   };
   
-  const handleStartTyping = () => {
-    const topic = showCustomInput ? customTopic : selectedTopic;
+  const handleSubmit = () => {
+    const topic = useCustom ? customTopic : selectedTopic;
     if (topic) {
-      startTyping(topic);
+      onTopicSelected(topic);
     }
   };
-  
+
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <h2 className="text-secondary text-2xl font-semibold text-center mb-6">Choose a Topic</h2>
+    <div className="w-full max-w-md mx-auto bg-white/50 backdrop-blur-sm p-6 rounded-lg shadow-md border border-supatyper-lightBeige">
+      <h2 className="text-xl font-semibold text-supatyper-darkBrown mb-4 text-center">
+        Choose a Topic
+      </h2>
       
-      {!showCustomInput ? (
-        <div className="mb-6">
+      <div className="space-y-4">
+        {!useCustom ? (
           <select 
-            className="w-full p-3 border border-beige rounded-lg text-secondary focus:outline-none focus:ring-2 focus:ring-buttonBlue"
             value={selectedTopic}
             onChange={handleTopicSelect}
+            className="w-full p-3 bg-supatyper-backgroundLight border-supatyper-mutedBrown border rounded-md focus:outline-none focus:ring-2 focus:ring-supatyper-brightBlue"
           >
             <option value="">Select a topic</option>
-            {predefinedTopics.map(topic => (
-              <option key={topic} value={topic.toLowerCase()}>{topic}</option>
+            {predefinedTopics.map((topic) => (
+              <option key={topic} value={topic}>
+                {topic}
+              </option>
             ))}
           </select>
-        </div>
-      ) : (
-        <div className="mb-6">
+        ) : (
           <Input
+            type="text"
             placeholder="Enter a custom topic..."
             value={customTopic}
             onChange={handleCustomTopicChange}
+            className="w-full bg-supatyper-backgroundLight border-supatyper-mutedBrown"
           />
+        )}
+
+        <div className="flex justify-between">
+          <Button
+            variant="link"
+            onClick={() => {
+              setUseCustom(!useCustom);
+              if (useCustom) {
+                setCustomTopic('');
+              } else {
+                setSelectedTopic('');
+              }
+            }}
+            className="text-supatyper-brightBlue hover:text-supatyper-brightBlue/80"
+          >
+            {useCustom ? "Use predefined topic" : "Enter custom topic"}
+          </Button>
+          
+          <Button
+            onClick={handleSubmit}
+            disabled={isLoading || (!selectedTopic && !customTopic)}
+            className="bg-supatyper-brightBlue hover:bg-supatyper-brightBlue/90 text-white"
+          >
+            {isLoading ? (
+              "Loading..."
+            ) : (
+              <>
+                Start Typing <ChevronRight className="ml-2 h-4 w-4" />
+              </>
+            )}
+          </Button>
         </div>
-      )}
-      
-      <div className="flex justify-between items-center">
-        <Button 
-          variant="link"
-          onClick={handleCustomTopic}
-        >
-          {showCustomInput ? 'Select from list' : 'Enter custom topic'}
-        </Button>
-        
-        <Button
-          onClick={handleStartTyping}
-          disabled={!selectedTopic && !customTopic}
-          icon={
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          }
-        >
-          Start Typing
-        </Button>
       </div>
-    </Card>
+    </div>
   );
 }
