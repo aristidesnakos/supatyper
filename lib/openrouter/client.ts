@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
+  baseURL: "https://api.anthropic.com/v1/",
   apiKey: process.env.OPENROUTER_API_KEY,
   defaultHeaders: {
     "HTTP-Referer": "https://supatyper.vercel.app", // Update with actual URL
@@ -21,7 +21,7 @@ export async function generateParagraph(
   try {
     const { 
       maxTokens = 100, 
-      model = "openai/gpt-3.5-turbo" 
+      model = "claude-3-haiku-20240307" 
     } = options;
     
     const response = await openai.chat.completions.create({
