@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 62, 54, 40; /* #3E3628 - dark brown */
+  --background-rgb: 252, 252, 237; /* #FCFCED - primary white */
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-rgb));
+}
+
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold text-secondary;
+  }
+  
+  p {
+    @apply text-secondary;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-buttonBlue hover:bg-opacity-90 text-white px-6 py-3 rounded-lg flex items-center focus:outline-none focus:ring-2 focus:ring-buttonBlue focus:ring-opacity-50 disabled:opacity-50;
+  }
+  
+  .btn-secondary {
+    @apply border border-beige text-secondary hover:bg-gray-50 px-4 py-3 rounded-lg flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-beige;
+  }
+  
+  .btn-link {
+    @apply text-blue hover:text-opacity-80 flex items-center justify-center focus:outline-none;
+  }
+  
+  .input-field {
+    @apply w-full p-3 border border-beige rounded-lg text-secondary focus:outline-none focus:ring-2 focus:ring-buttonBlue;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg shadow-card p-8;
+  }
+}
